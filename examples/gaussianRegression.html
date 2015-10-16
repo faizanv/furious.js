@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gaussian Regression Example</title>
+
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://getbootstrap.com/examples/justified-nav/justified-nav.css" rel="stylesheet">
+
+  <style>
+  .axis path {
+    fill: none;
+    stroke: #777;
+    shape-rendering: crispEdges;
+  }
+  .axis text {
+    font-family: Lato;
+    font-size: 13px;
+  }
+  </style>
+
+</head>
+<body>
+  <div class="container">
+
+    <h1>Gaussian Regression</h1>
+    <input type="range" name="name" value="">
+    <div class="jumbotron">
+
+      <svg id="visualisation" width="1000" height="500"></svg>
+
+    </div>
+  </div>
+
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="../furious.js"></script>
+  <script type="text/javascript">
+    var backend = furious.getDefaultBackend();
+    var context = null;
+    furious.init(backend, furious.getDefaultBackendOptions(backend), function(ctx) {
+      context = ctx;
+      d3.csv("okun.csv", function(data) {
+        unemployment = data.map(function(d) { return parseFloat(d["Unemployment Change"]) * 100.0; });
+        gdpGrowth = data.map(function(d) { return parseFloat(d["GDP Growth"]) * 100.0; });
+        year = data.map(function(d) { return parseInt(d["Year"]); });
+
+        var data = [];
+        for (i = 0; i < unemployment.length; i++) {
+          data.push(
+            {
+              "year": year[i],
+              "unemployment": unemployment[i]
+            }
+          );
+        }
+        console.log(data);
+
+        var vis = d3.select("#visualisation"),
+        WIDTH = 1000,
+        HEIGHT = 500,
+        MARGINS = {
+          top: 20,
+          right: 20,
+          bottom: 20,
+          left: 50
+        },
+        xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([d3.min(year), d3.max(year)]),
+        yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([d3.min(unemployment), d3.max(unemployment)]),
+        xAxis = d3.svg.axis()
+        .scale(xScale),
+        yAxis = d3.svg.axis()
+        .scale(yScale)
+        .orient("left");
+
+        vis.append("svg:g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
+        .call(xAxis);
+        vis.append("svg:g")
+        .attr("class", "y axis")
+        .attr("transform", "translate(" + (MARGINS.left) + ",0)")
+        .call(yAxis);
+
+        var lineGen = d3.svg.line()
+        .x(function(d) {
+          return xScale(d.year);
+        })
+        .y(function(d) {
+          return yScale(d.unemployment);
+        })
+        .interpolate("basis");
+        vis.append('svg:path')
+        .attr('d', lineGen(data))
+        .attr('stroke', 'green')
+        .attr('stroke-width', 2)
+        .attr('fill', 'none');
+
+      });
+    });
+  </script>
+  </body>
+  </html>
