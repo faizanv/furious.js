@@ -26,9 +26,9 @@
 
     <h1>Gaussian Regression</h1>
     <input type="range" name="name" value="">
-    <div class="jumbotron">
+    <div class="jumbotron" id="foo">
 
-      <svg id="visualisation" width="1000" height="500"></svg>
+      <!-- <svg id="visualisation" width="1000" height="500"></svg> -->
 
     </div>
   </div>
@@ -37,68 +37,82 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   <script src="../furious.js"></script>
   <script type="text/javascript">
-    var backend = furious.getDefaultBackend();
-    var context = null;
-    furious.init(backend, furious.getDefaultBackendOptions(backend), function(ctx) {
-      context = ctx;
-      d3.csv("okun.csv", function(data) {
-        unemployment = data.map(function(d) { return parseFloat(d["Unemployment Change"]) * 100.0; });
-        gdpGrowth = data.map(function(d) { return parseFloat(d["GDP Growth"]) * 100.0; });
-        year = data.map(function(d) { return parseInt(d["Year"]); });
+  var backend = furious.getDefaultBackend();
+  var context = null;
+  furious.init(backend, furious.getDefaultBackendOptions(backend), function(ctx) {
+    context = ctx;
+    d3.csv("okun.csv", function(data) {
+      unemployment = data.map(function(d) { return parseFloat(d["Unemployment Change"]) * 100.0; });
+      gdpGrowth = data.map(function(d) { return parseFloat(d["GDP Growth"]) * 100.0; });
+      year = data.map(function(d) { return parseInt(d["Year"]); });
 
-        var data = [];
-        for (i = 0; i < unemployment.length; i++) {
-          data.push(
-            {
-              "year": year[i],
-              "unemployment": unemployment[i]
-            }
-          );
-        }
-        console.log(data);
+      var data2 = [];
+      for (i = 0; i < unemployment.length; i++) {
+        data2.push(
+          {
+            "year": year[i],
+            "unemployment": unemployment[i]
+          }
+        );
+      }
+      console.log(data);
 
-        var vis = d3.select("#visualisation"),
-        WIDTH = 1000,
-        HEIGHT = 500,
-        MARGINS = {
-          top: 20,
-          right: 20,
-          bottom: 20,
-          left: 50
-        },
-        xScale = d3.scale.linear().range([MARGINS.left, WIDTH - MARGINS.right]).domain([d3.min(year), d3.max(year)]),
-        yScale = d3.scale.linear().range([HEIGHT - MARGINS.top, MARGINS.bottom]).domain([d3.min(unemployment), d3.max(unemployment)]),
-        xAxis = d3.svg.axis()
-        .scale(xScale),
-        yAxis = d3.svg.axis()
-        .scale(yScale)
-        .orient("left");
+      var data = [[5,3], [10,17], [15,4], [2,8]];
 
-        vis.append("svg:g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")")
-        .call(xAxis);
-        vis.append("svg:g")
-        .attr("class", "y axis")
-        .attr("transform", "translate(" + (MARGINS.left) + ",0)")
-        .call(yAxis);
+          var margin = {top: 20, right: 15, bottom: 60, left: 60}
+            , width = 960 - margin.left - margin.right
+            , height = 500 - margin.top - margin.bottom;
 
-        var lineGen = d3.svg.line()
-        .x(function(d) {
-          return xScale(d.year);
-        })
-        .y(function(d) {
-          return yScale(d.unemployment);
-        })
-        .interpolate("basis");
-        vis.append('svg:path')
-        .attr('d', lineGen(data))
-        .attr('stroke', 'green')
-        .attr('stroke-width', 2)
-        .attr('fill', 'none');
+          var x = d3.scale.linear()
+                    .domain([d3.min(year) - 5, d3.max(year) + 5])
+                    .range([ 0, width ]);
 
-      });
+          var y = d3.scale.linear()
+          	      .domain([-5, 5])
+          	      .range([ height, 0 ]);
+
+          var chart = d3.select('#foo')
+      	.append('svg:svg')
+      	.attr('width', width + margin.right + margin.left)
+      	.attr('height', height + margin.top + margin.bottom)
+      	.attr('class', 'chart')
+
+          var main = chart.append('g')
+      	.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+      	.attr('width', width)
+      	.attr('height', height)
+      	.attr('class', 'main')
+
+          // draw the x axis
+          var xAxis = d3.svg.axis()
+      	.scale(x)
+      	.orient('bottom');
+
+          main.append('g')
+      	.attr('transform', 'translate(0,' + height + ')')
+      	.attr('class', 'main axis date')
+      	.call(xAxis);
+
+          // draw the y axis
+          var yAxis = d3.svg.axis()
+      	.scale(y)
+      	.orient('left');
+
+          main.append('g')
+      	.attr('transform', 'translate(0,0)')
+      	.attr('class', 'main axis date')
+      	.call(yAxis);
+
+          var g = main.append("svg:g");
+
+          g.selectAll("scatter-dots")
+            .data(data2)
+            .enter().append("svg:circle")
+                .attr("cx", function (d,i) { return x(d.year); } )
+                .attr("cy", function (d) { return y(d.unemployment); } )
+                .attr("r", 4);
     });
+  });
   </script>
-  </body>
-  </html>
+</body>
+</html>
